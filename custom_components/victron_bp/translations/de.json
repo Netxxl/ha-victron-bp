@@ -1,0 +1,109 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Victron BT Devices",
+        "description": "Gerät auswählen oder MAC-Adresse eingeben.",
+        "data": {
+          "address": "Gerät / MAC-Adresse"
+        }
+      },
+      "settings": {
+        "title": "Victron BT Devices: PIN und Schlüssel",
+        "description": "PIN von {name} (Standard 000000). Der Verschlüsselungsschlüssel ist optional und nur zum Lesen der Live-Werte nötig; er steht in VictronConnect unter Produktinfo, Instant Readout.",
+        "data": {
+          "pin": "Bluetooth-PIN (6 Ziffern)",
+          "advertisement_key": "Verschlüsselungsschlüssel (32 Hex, optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_pin": "Die PIN muss genau 6 Ziffern haben.",
+      "invalid_key": "Der Schlüssel muss 32 Hex-Zeichen haben."
+    },
+    "abort": {
+      "already_configured": "Gerät ist bereits eingerichtet",
+      "not_supported": "Dieses Bluetooth-Gerät ist kein unterstütztes Victron-Gerät"
+    }
+  },
+  "entity": {
+    "switch": {
+      "output": {
+        "name": "Ausgang"
+      }
+    },
+    "button": {
+      "pair": {
+        "name": "Mit PIN koppeln"
+      },
+      "reset": {
+        "name": "Bluetooth zurücksetzen (Cache leeren & neu koppeln)"
+      }
+    },
+    "sensor": {
+      "device_state": {
+        "name": "Gerätezustand",
+        "state": {
+          "off": "Aus",
+          "low_power": "Energiesparmodus",
+          "fault": "Fehler",
+          "bulk": "Bulk (Konstantstrom)",
+          "absorption": "Absorption (Konstantspannung)",
+          "float": "Float (Ladeerhaltung)",
+          "storage": "Lagermodus",
+          "equalize": "Ausgleichsladung",
+          "passthrough": "Durchleiten",
+          "inverting": "Wechselrichten",
+          "assisting": "Unterstützen",
+          "psu": "Netzteilmodus",
+          "hub1": "Hub-1",
+          "not_available": "Nicht verfügbar",
+          "unknown": "Unbekannt"
+        }
+      },
+      "device_off_reason": {
+        "name": "Abschaltgrund"
+      },
+      "battery_voltage": {
+        "name": "Batteriespannung"
+      },
+      "battery_current": {
+        "name": "Batteriestrom"
+      },
+      "battery_power": {
+        "name": "Batterieleistung"
+      },
+      "charger_temperature": {
+        "name": "Ladegerät-Temperatur"
+      },
+      "battery_temperature": {
+        "name": "Batterietemperatur"
+      },
+      "state_of_charge": {
+        "name": "Ladezustand"
+      },
+      "input_voltage": {
+        "name": "Eingangsspannung"
+      },
+      "input_current": {
+        "name": "Eingangsstrom"
+      },
+      "input_power": {
+        "name": "Eingangsleistung"
+      },
+      "output_voltage": {
+        "name": "Ausgangsspannung"
+      },
+      "output_current": {
+        "name": "Ausgangsstrom"
+      },
+      "temperature": {
+        "name": "Temperatur"
+      },
+      "device_mode": {
+        "name": "Gerätemodus"
+      }
+    }
+  }
+}
