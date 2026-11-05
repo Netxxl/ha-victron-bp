@@ -57,6 +57,22 @@ Abgefragt werden:
 
 Nichts davon steht im Code; alles wird erst beim Einrichten eingegeben.
 
+Mehrere Geräte: jedes Gerät ist ein eigener Eintrag mit eigenem PIN. Jedes hält
+dauerhaft eine Verbindung und belegt damit einen Verbindungsplatz am Adapter
+(je nach Chip etwa 5–7).
+
+### Einstellungen
+
+Unter *Victron BT Devices → Konfigurieren*:
+
+| Option | Standard | Bedeutung |
+|---|---|---|
+| Abfrageintervall | 60 s | 10–600 s; die Verbindung bleibt in jedem Fall offen |
+| Bluetooth-PIN | wie beim Einrichten | nur nach einer PIN-Änderung am Gerät anpassen |
+| Automatischer Bluetooth-Reset | an | bei „Notify acquired" BlueZ-Cache leeren und neu koppeln |
+| Mindestabstand automatischer Resets | 30 min | 5–720 min |
+| Bluetooth-Kopplung jetzt entfernen | – | einmalig: Verbindung trennen, Gerät samt Kopplung in BlueZ vergessen; danach „Mit PIN koppeln" |
+
 ## Einmal koppeln (PIN)
 
 VE.Direct Smart sichert die GATT-Verbindung über ein **BLE-Bonding**: der

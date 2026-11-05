@@ -9,6 +9,15 @@ CONF_MODE_ON = "mode_on"        # cached per-device VE_REG_MODE "on" value (BP 3
 
 DEFAULT_PIN = "000000"
 
+# Options (Configure dialog)
+CONF_SCAN_INTERVAL = "scan_interval"        # seconds between reads
+CONF_AUTO_RESET = "auto_reset"              # cure "Notify acquired" by itself
+CONF_AUTO_RESET_MINUTES = "auto_reset_minutes"  # at most one automatic reset per this many minutes
+UNPAIR = "unpair"                           # one-time action, not stored
+DEFAULT_SCAN_INTERVAL = 60
+DEFAULT_AUTO_RESET = True
+DEFAULT_AUTO_RESET_MINUTES = 30
+
 # VE_REG_MODE (0x0200) values. "Off" (4) is the same on every product; the "on"
 # value differs (3 on a BatteryProtect, 1 on an Orion), so it is learned/cached.
 DEVICE_MODE_OFF = 4

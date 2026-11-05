@@ -19,11 +19,17 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from . import catalog
 from .advertisement import VICTRON_MANUFACTURER_ID, product_id_from_raw
 from .const import (
+    CONF_AUTO_RESET,
+    CONF_AUTO_RESET_MINUTES,
     CONF_KEY,
     CONF_MODE_ON,
     CONF_PIN,
     CONF_PRODUCT_ID,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_AUTO_RESET,
+    DEFAULT_AUTO_RESET_MINUTES,
     DEFAULT_MODE_ON,
+    DEFAULT_SCAN_INTERVAL,
     DEVICE_MODE_OFF,
     DOMAIN,
 )
@@ -31,16 +37,30 @@ from .gatt import VeSmartConnection
 from .pairing import async_reset
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=60)
-# A reset drops the bond and re-pairs; do not loop on it if it does not help.
-AUTO_RESET_COOLDOWN = 30 * 60
 
 type VictronBpConfigEntry = ConfigEntry["BatteryProtectCoordinator"]
 
 
+def entry_option(entry: ConfigEntry, key: str, default):
+    return entry.options.get(key, default)
+
+
+def reload_snapshot(entry: ConfigEntry) -> tuple:
+    """What a reload depends on; entry.data also carries learned values (mode_on)."""
+    return (dict(entry.options), entry.data.get(CONF_PIN))
+
+
 class BatteryProtectCoordinator(DataUpdateCoordinator[dict[int, float | int | None]]):
     def __init__(self, hass: HomeAssistant, entry: VictronBpConfigEntry) -> None:
-        super().__init__(hass, _LOGGER, config_entry=entry, name=DOMAIN, update_interval=SCAN_INTERVAL)
+        super().__init__(
+            hass,
+            _LOGGER,
+            config_entry=entry,
+            name=DOMAIN,
+            update_interval=timedelta(
+                seconds=entry_option(entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            ),
+        )
         self.address: str = entry.data[CONF_ADDRESS]
         self.pin: str = entry.data[CONF_PIN]
         self._key = entry.data.get(CONF_KEY) or None
@@ -76,6 +96,12 @@ class BatteryProtectCoordinator(DataUpdateCoordinator[dict[int, float | int | No
         # relearn it whenever the device reports a running (non-off) mode.
         self.mode_on: int = entry.data.get(CONF_MODE_ON) or DEFAULT_MODE_ON
         self._last_auto_reset: float | None = None
+        self._auto_reset_enabled: bool = entry_option(entry, CONF_AUTO_RESET, DEFAULT_AUTO_RESET)
+        # A reset drops the bond and re-pairs; do not loop on it if it does not help.
+        self._auto_reset_cooldown: int = 60 * entry_option(
+            entry, CONF_AUTO_RESET_MINUTES, DEFAULT_AUTO_RESET_MINUTES
+        )
+        self.snapshot = reload_snapshot(entry)
 
     def _discover_product_id(self) -> int | None:
         info = bluetooth.async_last_service_info(self.hass, self.address, connectable=True)
@@ -91,7 +117,7 @@ class BatteryProtectCoordinator(DataUpdateCoordinator[dict[int, float | int | No
             data = await self._conn.poll()
         except Exception as err:
             raise UpdateFailed(f"GATT read failed: {err}") from err
-        if self._conn.notify_locked:
+        if self._conn.notify_locked and self._auto_reset_enabled:
             self._schedule_auto_reset()
         self._learn_mode_on(data)
         return data
@@ -99,7 +125,7 @@ class BatteryProtectCoordinator(DataUpdateCoordinator[dict[int, float | int | No
     def _schedule_auto_reset(self) -> None:
         """Run the reset button's cure by itself when the data channel is locked."""
         now = time.monotonic()
-        if self._last_auto_reset is not None and now - self._last_auto_reset < AUTO_RESET_COOLDOWN:
+        if self._last_auto_reset is not None and now - self._last_auto_reset < self._auto_reset_cooldown:
             return
         self._last_auto_reset = now
         self.config_entry.async_create_background_task(
@@ -120,7 +146,7 @@ class BatteryProtectCoordinator(DataUpdateCoordinator[dict[int, float | int | No
                 "next automatic try in %d min, or press the reset button",
                 self.address,
                 err,
-                AUTO_RESET_COOLDOWN // 60,
+                self._auto_reset_cooldown // 60,
             )
         else:
             _LOGGER.info("%s: BlueZ cache cleared (%d removed) and paired again", self.address, removed)
@@ -144,6 +170,10 @@ class BatteryProtectCoordinator(DataUpdateCoordinator[dict[int, float | int | No
             raise RuntimeError("this device has no writable mode register")
         await self._conn.write_register(self._mode_vreg, bytes([value]))
         await self.async_request_refresh()
+
+    async def async_stop_link(self) -> None:
+        """Close the connection, e.g. before the bond is removed."""
+        await self._conn.stop()
 
     async def async_shutdown(self) -> None:
         await self._conn.stop()

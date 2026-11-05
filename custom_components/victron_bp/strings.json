@@ -27,6 +27,31 @@
       "not_supported": "This Bluetooth device is not a supported Victron device"
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Victron BT Devices: settings",
+        "data": {
+          "scan_interval": "Read interval (s)",
+          "pin": "Bluetooth PIN (6 digits)",
+          "auto_reset": "Automatic Bluetooth reset",
+          "auto_reset_minutes": "Minimum time between automatic resets (min)",
+          "unpair": "Remove Bluetooth pairing now"
+        },
+        "data_description": {
+          "scan_interval": "How often the values are read, 10-600 s. The connection stays open either way.",
+          "pin": "Change this only after changing the PIN on the device (VictronConnect). Used for the next pairing.",
+          "auto_reset": "If BlueZ keeps the data channel of a dropped link (\"Notify acquired\"), clear its cache and pair again by itself.",
+          "auto_reset_minutes": "Once a reset is done, the next automatic one waits at least this long.",
+          "unpair": "One-time action: closes the connection and makes Home Assistant's Bluetooth forget the device and its bond. Afterwards press \"Pair with PIN\", or delete the entry."
+        }
+      }
+    },
+    "error": {
+      "invalid_pin": "The PIN must be exactly 6 digits.",
+      "unpair_failed": "Removing the pairing failed, see the log."
+    }
+  },
   "entity": {
     "switch": {
       "output": {
